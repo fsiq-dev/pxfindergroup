@@ -24,6 +24,7 @@ app.use(express.json());
 
 // ─── REST Routes ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+app.get('/ping', (_req, res) => res.json({ pong: true }));
 app.use('/api/quests', questsRouter);
 app.use('/api/rooms', roomsRouter);
 
