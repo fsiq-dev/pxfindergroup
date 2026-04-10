@@ -1,5 +1,5 @@
 'use client';
-import { Users, Swords, Bell } from 'lucide-react';
+import { Users, Swords, Bell, Volume2, VolumeX } from 'lucide-react';
 import { Player } from '@/lib/types';
 import { CLAN_COLORS, WORLD_COLORS } from '@/lib/types';
 
@@ -7,9 +7,21 @@ interface NavbarProps {
   player: Player | null;
   onSetupProfile: () => void;
   activeQueueCount: number;
+  unreadMessages?: number;
+  soundEnabled?: boolean;
+  onBellClick?: () => void;
+  onToggleSound?: () => void;
 }
 
-export function Navbar({ player, onSetupProfile, activeQueueCount }: NavbarProps) {
+export function Navbar({
+  player,
+  onSetupProfile,
+  activeQueueCount,
+  unreadMessages = 0,
+  soundEnabled = true,
+  onBellClick,
+  onToggleSound,
+}: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-poke-dark-border bg-poke-dark/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -24,12 +36,43 @@ export function Navbar({ player, onSetupProfile, activeQueueCount }: NavbarProps
           </div>
         </div>
 
-        {/* Status */}
+        {/* Right side */}
         <div className="flex items-center gap-3">
           {activeQueueCount > 0 && (
             <div className="flex items-center gap-1.5 badge bg-poke-gold/10 text-poke-gold border-poke-gold/20 animate-pulse-slow">
               <div className="w-1.5 h-1.5 rounded-full bg-poke-gold" />
               In queue ({activeQueueCount})
+            </div>
+          )}
+
+          {/* Bell: only show when player exists */}
+          {player && (
+            <div className="flex items-center gap-1">
+              {/* Notification bell */}
+              <button
+                onClick={onBellClick}
+                className="btn-ghost p-1.5 relative"
+                title="Go to party chat"
+              >
+                <Bell className={`w-4 h-4 ${unreadMessages > 0 ? 'text-poke-gold' : 'text-gray-500'}`} />
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-poke-red text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
+              </button>
+
+              {/* Sound toggle */}
+              <button
+                onClick={onToggleSound}
+                className="btn-ghost p-1.5"
+                title={soundEnabled ? 'Mute notifications' : 'Unmute notifications'}
+              >
+                {soundEnabled
+                  ? <Volume2 className="w-3.5 h-3.5 text-gray-500" />
+                  : <VolumeX className="w-3.5 h-3.5 text-gray-600" />
+                }
+              </button>
             </div>
           )}
 

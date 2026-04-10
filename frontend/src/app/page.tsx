@@ -14,6 +14,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Quest, Room, Player, World, Clan } from '@/lib/types';
 import { api } from '@/lib/api';
 import { Search, LayoutGrid, List } from 'lucide-react';
+import { playMessageSound } from '@/lib/sound';
 
 type Filter = 'all' | 'kanto' | 'special';
 
@@ -32,6 +33,8 @@ export default function HomePage() {
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const addToast = useCallback((type: ToastItem['type'], message: string) => {
     const id = uuidv4();
@@ -71,16 +74,19 @@ export default function HomePage() {
     onRoomMatched: (room: Room) => {
       setCurrentRoom(room);
       setQueuedQuestId(null);
+      setUnreadMessages(0);
       addToast('success', `Matched! Your party for "${room.quest.name}" is ready!`);
       router.push(`/room/${room.id}`);
     },
     onRoomCreated: (room: Room) => {
       setCurrentRoom(room);
+      setUnreadMessages(0);
       addToast('success', `Room created for "${room.quest.name}"`);
       router.push(`/room/${room.id}`);
     },
     onRoomJoined: (room: Room) => {
       setCurrentRoom(room);
+      setUnreadMessages(0);
       addToast('info', `Joined room for "${room.quest.name}"`);
       router.push(`/room/${room.id}`);
     },
@@ -102,6 +108,12 @@ export default function HomePage() {
       setQuests((prev) =>
         prev.map((q) => (q.id === questId ? { ...q, playersInQueue: count } : q))
       );
+    },
+    onChatMessage: (_roomId: string, message) => {
+      if (message.playerId !== player?.id) {
+        setUnreadMessages((n) => n + 1);
+        if (soundEnabled) playMessageSound();
+      }
     },
     onError: (message: string) => {
       addToast('error', message);
@@ -189,6 +201,13 @@ export default function HomePage() {
         player={player}
         onSetupProfile={() => setShowSetup(true)}
         activeQueueCount={queuedQuestId ? 1 : 0}
+        unreadMessages={unreadMessages}
+        soundEnabled={soundEnabled}
+        onBellClick={() => {
+          setUnreadMessages(0);
+          if (currentRoom) router.push(`/room/${currentRoom.id}`);
+        }}
+        onToggleSound={() => setSoundEnabled((s) => !s)}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
