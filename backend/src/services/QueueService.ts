@@ -8,7 +8,7 @@ import {
   ChatMessage,
   QueueEntry,
 } from '../types';
-import { getQuestById } from '../data/quests';
+import { getQuestById, requiresUniqueClan } from '../data/quests';
 
 interface MatchResult {
   matched: boolean;
@@ -46,7 +46,13 @@ export class QueueService {
     this.playerQueueIndex.set(player.id, questId);
 
     // Check if we have enough players for auto-match
-    if (queue.length >= quest.minPlayers) {
+    if (requiresUniqueClan(questId)) {
+      // Precisa de minPlayers com clãs todos distintos
+      const uniqueClans = new Set(queue.map((e) => e.player.clan));
+      if (uniqueClans.size >= quest.minPlayers) {
+        return this.autoMatch(quest, queue);
+      }
+    } else if (queue.length >= quest.minPlayers) {
       return this.autoMatch(quest, queue);
     }
 
@@ -81,9 +87,32 @@ export class QueueService {
   }
 
   private autoMatch(quest: Quest, queue: QueueEntry[]): MatchResult {
-    const playersToMatch = queue.splice(0, quest.minPlayers);
+    let playersToMatch: QueueEntry[];
 
-    // Remove from index
+    if (requiresUniqueClan(quest.id)) {
+      // Seleciona um jogador por clã (primeiro encontrado de cada) até minPlayers
+      const seenClans = new Set<string>();
+      const selected: QueueEntry[] = [];
+
+      for (const entry of queue) {
+        if (!seenClans.has(entry.player.clan)) {
+          seenClans.add(entry.player.clan);
+          selected.push(entry);
+          if (selected.length === quest.minPlayers) break;
+        }
+      }
+      playersToMatch = selected;
+
+      // Remove os selecionados da fila
+      for (const entry of playersToMatch) {
+        const idx = queue.findIndex((e) => e.player.id === entry.player.id);
+        if (idx !== -1) queue.splice(idx, 1);
+      }
+    } else {
+      playersToMatch = queue.splice(0, quest.minPlayers);
+    }
+
+    // Remove do index
     for (const entry of playersToMatch) {
       this.playerQueueIndex.delete(entry.player.id);
     }
@@ -150,6 +179,17 @@ export class QueueService {
     if (room.status === 'full') return { success: false, error: 'Room is full' };
     if (room.status === 'in-progress') return { success: false, error: 'Quest already in progress' };
     if (room.members.some((m) => m.id === player.id)) return { success: false, error: 'Already in room' };
+
+    // Clan único por quest multi-clan
+    if (requiresUniqueClan(room.questId)) {
+      const clanAlreadyInRoom = room.members.some((m) => m.clan === player.clan);
+      if (clanAlreadyInRoom) {
+        return {
+          success: false,
+          error: `Clan ${player.clan} já está na sala. Esta quest exige clãs diferentes.`,
+        };
+      }
+    }
 
     // Check filters
     if (player.level < room.filters.minLevel) {

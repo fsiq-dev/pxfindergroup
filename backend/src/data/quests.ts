@@ -33,3 +33,7 @@ export const getQuestById = (id: string): Quest | undefined =>
 
 export const getQuestsByCategory = (category: string): Quest[] =>
   QUESTS.filter((q) => q.category === category);
+
+/** Quests que exigem clãs diferentes entre todos os membros */
+export const requiresUniqueClan = (questId: string): boolean =>
+  QUESTS.find((q) => q.id === questId)?.tags.includes('multi-clan') ?? false;
