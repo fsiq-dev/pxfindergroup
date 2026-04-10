@@ -19,6 +19,11 @@ import { prisma } from '../lib/prisma';
 // In-memory player registry: socketId → Player
 const connectedPlayers = new Map<string, Player>();
 
+// Grace period: playerId → timeout handle
+// Gives players 15s to reconnect before being removed from room/queue
+const disconnectTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const DISCONNECT_GRACE_MS = 15_000;
+
 function broadcastRoomsUpdate(io: Server): void {
   io.emit('rooms:update', { rooms: queueService.getRooms() });
 }
@@ -46,6 +51,16 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     };
 
     connectedPlayers.set(socket.id, player);
+
+    // Cancel any pending disconnect timeout for this player
+    if (payload.existingId) {
+      const pending = disconnectTimeouts.get(payload.existingId);
+      if (pending) {
+        clearTimeout(pending);
+        disconnectTimeouts.delete(payload.existingId);
+        console.log(`[Socket] Reconnect within grace period: ${player.characterName}`);
+      }
+    }
 
     // If reconnecting with an existing ID, update socketId in any room they're in
     if (payload.existingId) {
@@ -280,25 +295,33 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   });
 
   // ─── Disconnect ────────────────────────────────────────────────────────────
-  socket.on('disconnect', async () => {
+  socket.on('disconnect', () => {
     const player = connectedPlayers.get(socket.id);
     if (!player) return;
 
-    const { leftRoom, leftQuestId } = await queueService.handlePlayerDisconnect(player.id);
-
-    if (leftRoom) {
-      io.to(leftRoom.id).emit('room:updated', { room: leftRoom });
-    }
-    if (leftQuestId) {
-      broadcastQueueUpdate(io, leftQuestId);
-    }
-    if (leftRoom || leftQuestId) {
-      broadcastRoomsUpdate(io);
-    }
-
-    notificationService.unregister(player.id);
     connectedPlayers.delete(socket.id);
+    console.log(`[Socket] Client disconnected: ${player.characterName} (grace period started)`);
 
-    console.log(`[Socket] Client disconnected: ${player.characterName}`);
+    // Wait before removing from room/queue — allows reconnection during navigation
+    const timeout = setTimeout(async () => {
+      disconnectTimeouts.delete(player.id);
+
+      const { leftRoom, leftQuestId } = await queueService.handlePlayerDisconnect(player.id);
+
+      if (leftRoom) {
+        io.to(leftRoom.id).emit('room:updated', { room: leftRoom });
+      }
+      if (leftQuestId) {
+        broadcastQueueUpdate(io, leftQuestId);
+      }
+      if (leftRoom || leftQuestId) {
+        broadcastRoomsUpdate(io);
+      }
+
+      notificationService.unregister(player.id);
+      console.log(`[Socket] Grace period expired: ${player.characterName} removed from room/queue`);
+    }, DISCONNECT_GRACE_MS);
+
+    disconnectTimeouts.set(player.id, timeout);
   });
 }
