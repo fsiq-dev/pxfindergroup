@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background-color: #0d0d0f;
+    color: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #16181d;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2d2f36;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3d3f48;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-pxg-red hover:bg-pxg-red-dark active:scale-95 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-pxg-dark-hover hover:bg-pxg-dark-border border border-pxg-dark-border text-gray-200 font-medium px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply hover:bg-pxg-dark-hover text-gray-400 hover:text-gray-200 font-medium px-3 py-1.5 rounded-lg transition-all duration-150;
+  }
+  .card {
+    @apply bg-pxg-dark-card border border-pxg-dark-border rounded-xl p-4;
+  }
+  .input {
+    @apply bg-pxg-dark border border-pxg-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-pxg-red transition-colors placeholder-gray-600;
+  }
+  .select {
+    @apply bg-pxg-dark border border-pxg-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-pxg-red transition-colors;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border;
+  }
+  .glow-red {
+    box-shadow: 0 0 20px rgba(229, 62, 62, 0.15);
+  }
+}
