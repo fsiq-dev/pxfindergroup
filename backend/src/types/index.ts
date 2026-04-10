@@ -126,6 +126,10 @@ export interface JoinRoomPayload {
   roomId: string;
 }
 
+export interface CloseRoomPayload {
+  roomId: string;
+}
+
 export interface LeaveRoomPayload {
   roomId: string;
 }

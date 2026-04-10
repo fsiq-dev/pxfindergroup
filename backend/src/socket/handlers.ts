@@ -10,6 +10,7 @@ import {
   CreateRoomPayload,
   JoinRoomPayload,
   LeaveRoomPayload,
+  CloseRoomPayload,
   SendMessagePayload,
   SubscribePushPayload,
 } from '../types';
@@ -186,6 +187,31 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
 
     broadcastRoomsUpdate(io);
     console.log(`[Room] ${player.characterName} left room ${payload.roomId}`);
+  });
+
+  socket.on('room:close', (payload: CloseRoomPayload) => {
+    const player = connectedPlayers.get(socket.id);
+    if (!player) return;
+
+    const result = queueService.closeRoom(payload.roomId, player.id);
+    if (!result.success) {
+      socket.emit('error', { message: result.error ?? 'Cannot close room' });
+      return;
+    }
+
+    // Notifica todos na room que ela foi fechada
+    io.to(payload.roomId).emit('room:closed', { roomId: payload.roomId });
+
+    // Remove todos do socket room
+    const socketsInRoom = io.sockets.adapter.rooms.get(payload.roomId);
+    if (socketsInRoom) {
+      for (const socketId of socketsInRoom) {
+        io.sockets.sockets.get(socketId)?.leave(payload.roomId);
+      }
+    }
+
+    broadcastRoomsUpdate(io);
+    console.log(`[Room] ${player.characterName} closed room ${payload.roomId}`);
   });
 
   // ─── Chat ──────────────────────────────────────────────────────────────────

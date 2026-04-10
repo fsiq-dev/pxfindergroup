@@ -18,6 +18,7 @@ export interface SocketCallbacks {
   onQueueLeft?: (questId: string) => void;
   onQueueUpdate?: (questId: string, count: number) => void;
   onQueueSnapshot?: (snapshot: Record<string, number>) => void;
+  onRoomClosed?: (roomId: string) => void;
   onError?: (message: string) => void;
 }
 
@@ -67,6 +68,9 @@ export function useSocket(callbacks: SocketCallbacks) {
     socket.on('queue:snapshot', (snapshot: Record<string, number>) =>
       cbRef.current.onQueueSnapshot?.(snapshot)
     );
+    socket.on('room:closed', ({ roomId }: { roomId: string }) =>
+      cbRef.current.onRoomClosed?.(roomId)
+    );
     socket.on('error', ({ message }: { message: string }) =>
       cbRef.current.onError?.(message)
     );
@@ -85,6 +89,7 @@ export function useSocket(callbacks: SocketCallbacks) {
       socket.off('queue:left');
       socket.off('queue:update');
       socket.off('queue:snapshot');
+      socket.off('room:closed');
       socket.off('error');
     };
   }, []);
@@ -116,9 +121,13 @@ export function useSocket(callbacks: SocketCallbacks) {
     getSocket().emit('room:leave', { roomId });
   }, []);
 
+  const closeRoom = useCallback((roomId: string) => {
+    getSocket().emit('room:close', { roomId });
+  }, []);
+
   const sendMessage = useCallback((roomId: string, content: string) => {
     getSocket().emit('chat:message', { roomId, content });
   }, []);
 
-  return { setupPlayer, joinQueue, leaveQueue, createRoom, joinRoom, leaveRoom, sendMessage };
+  return { setupPlayer, joinQueue, leaveQueue, createRoom, joinRoom, leaveRoom, closeRoom, sendMessage };
 }

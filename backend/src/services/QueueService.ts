@@ -279,6 +279,22 @@ export class QueueService {
     return room;
   }
 
+  closeRoom(roomId: string, requesterId: string): { success: boolean; memberIds?: string[]; error?: string } {
+    const room = this.rooms.get(roomId);
+    if (!room) return { success: false, error: 'Room not found' };
+    if (room.leader.id !== requesterId) return { success: false, error: 'Only the leader can close the room' };
+
+    const memberIds = room.members.map((m) => m.id);
+
+    // Remove all members from index
+    for (const id of memberIds) {
+      this.playerRoomIndex.delete(id);
+    }
+
+    this.rooms.delete(roomId);
+    return { success: true, memberIds };
+  }
+
   addMessage(roomId: string, message: ChatMessage): Room | undefined {
     const room = this.rooms.get(roomId);
     if (!room) return undefined;
