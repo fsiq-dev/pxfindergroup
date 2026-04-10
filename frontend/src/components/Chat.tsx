@@ -19,14 +19,8 @@ function formatTime(timestamp: string): string {
 
 export function Chat({ room, messages, currentPlayerId, onSendMessage }: ChatProps) {
   const [input, setInput] = useState('');
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [messages]);
 
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -72,14 +66,14 @@ export function Chat({ room, messages, currentPlayerId, onSendMessage }: ChatPro
       </div>
 
       {/* Messages */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col-reverse gap-2 min-h-0">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-600 text-sm mt-8">
+          <div className="text-center text-gray-600 text-sm">
             <p>No messages yet.</p>
             <p className="text-xs mt-1">Say hi to your party!</p>
           </div>
         ) : (
-          messages.map((msg) => {
+          [...messages].reverse().map((msg) => {
             const isMine = msg.playerId === currentPlayerId;
             return (
               <div
