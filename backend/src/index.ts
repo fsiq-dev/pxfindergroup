@@ -8,13 +8,18 @@ import roomsRouter from './routes/rooms';
 import { registerSocketHandlers } from './socket/handlers';
 
 const PORT = process.env.PORT ?? 4000;
-const CLIENT_URL = process.env.CLIENT_URL ?? 'http://localhost:3000';
+
+// Aceita múltiplas origens separadas por vírgula
+// Ex: CLIENT_URL=https://meusite.vercel.app,http://localhost:3000
+const ALLOWED_ORIGINS = (process.env.CLIENT_URL ?? 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim());
 
 const app = express();
 const httpServer = http.createServer(app);
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json());
 
 // ─── REST Routes ─────────────────────────────────────────────────────────────
@@ -35,7 +40,7 @@ app.get('/api/push/vapid-public-key', (_req, res) => {
 // ─── Socket.io ───────────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -50,7 +55,7 @@ httpServer.listen(PORT, () => {
   console.log(`\n🎮 PXG Party Finder Backend`);
   console.log(`   HTTP  → http://localhost:${PORT}`);
   console.log(`   WS    → ws://localhost:${PORT}`);
-  console.log(`   CORS  → ${CLIENT_URL}\n`);
+  console.log(`   CORS  → ${ALLOWED_ORIGINS.join(', ')}\n`);
 });
 
 export { io };
