@@ -164,14 +164,14 @@ export default function RoomPage() {
         </div>
       </header>
 
-      <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+      <div className="max-w-7xl mx-auto w-full px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: 'calc(100vh - 3.5rem)', overflow: 'hidden' }}>
         {/* Left: Quest info + slots */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
-          {/* Quest details */}
+        <div className="lg:col-span-1 flex flex-col gap-3 overflow-y-auto pr-1 min-h-0">
+          {/* Quest details + Rewards */}
           <div className="card">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Quest Info</h2>
             <p className="text-gray-400 text-sm leading-relaxed mb-3">{room.quest.description}</p>
-            <div className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-col gap-2 text-sm mb-3">
               <div className="flex items-center gap-2 text-gray-400">
                 <Star className="w-4 h-4 text-pxg-gold" />
                 Level {room.quest.minLevel}+ required
@@ -183,6 +183,16 @@ export default function RoomPage() {
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock className="w-4 h-4 text-blue-400" />
                 ~{room.quest.estimatedDuration}
+              </div>
+            </div>
+            <div className="border-t border-pxg-dark-border pt-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rewards</p>
+              <div className="flex flex-wrap gap-1.5">
+                {room.quest.rewards.map((reward) => (
+                  <span key={reward} className="badge bg-pxg-gold/10 text-pxg-gold border-pxg-gold/20">
+                    {reward}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -275,22 +285,10 @@ export default function RoomPage() {
               </div>
             )}
           </div>
-
-          {/* Rewards */}
-          <div className="card">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Rewards</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {room.quest.rewards.map((reward) => (
-                <span key={reward} className="badge bg-pxg-gold/10 text-pxg-gold border-pxg-gold/20">
-                  {reward}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right: Chat */}
-        <div className="lg:col-span-2 card flex flex-col min-h-[500px] lg:min-h-0 p-0 overflow-hidden">
+        <div className="lg:col-span-2 card flex flex-col min-h-0 p-0 overflow-hidden">
           <div className="px-4 py-3 border-b border-pxg-dark-border">
             <h2 className="font-semibold text-white text-sm">Party Chat</h2>
           </div>
