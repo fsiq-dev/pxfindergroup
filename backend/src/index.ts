@@ -3,9 +3,11 @@ import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import { Server } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
 import questsRouter from './routes/quests';
 import roomsRouter from './routes/rooms';
 import { registerSocketHandlers } from './socket/handlers';
+import { redis, redisSub } from './lib/redis';
 
 const PORT = process.env.PORT ?? 4000;
 
@@ -46,6 +48,9 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
+// Redis adapter: permite múltiplas instâncias do backend compartilharem eventos
+io.adapter(createAdapter(redis, redisSub));
 
 io.on('connection', (socket) => {
   registerSocketHandlers(io, socket);
