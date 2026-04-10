@@ -149,6 +149,13 @@ export default function HomePage() {
 
   function handleJoinRoom(roomId: string) {
     if (!player) { setShowSetup(true); return; }
+
+    const room = rooms.find((r) => r.id === roomId);
+    if (room?.members.some((m) => m.id === player.id)) {
+      router.push(`/room/${roomId}`);
+      return;
+    }
+
     joinRoom(roomId);
   }
 
