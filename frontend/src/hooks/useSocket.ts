@@ -29,6 +29,20 @@ export function useSocket(callbacks: SocketCallbacks) {
   useEffect(() => {
     const socket = connectSocket();
 
+    // On every connect/reconnect, re-register the player so the server
+    // always has the player in connectedPlayers, even after socket restarts.
+    socket.on('connect', () => {
+      try {
+        const profile = JSON.parse(localStorage.getItem('poke_player_profile') ?? 'null');
+        const session = JSON.parse(localStorage.getItem('poke_player_session') ?? 'null');
+        if (profile) {
+          socket.emit('player:setup', { ...profile, existingId: session?.id ?? undefined });
+        }
+      } catch {
+        // ignore
+      }
+    });
+
     socket.on('player:ready', ({ player }: { player: Player }) =>
       cbRef.current.onPlayerReady?.(player)
     );
@@ -76,6 +90,7 @@ export function useSocket(callbacks: SocketCallbacks) {
     );
 
     return () => {
+      socket.off('connect');
       socket.off('player:ready');
       socket.off('rooms:update');
       socket.off('room:matched');
