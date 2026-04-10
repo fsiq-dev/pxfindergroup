@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
 
 // ─── Start ───────────────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {
-  console.log(`\n🎮 PXG Party Finder Backend`);
+  console.log(`\n🎮 Poke Party Finder Backend`);
   console.log(`   HTTP  → http://localhost:${PORT}`);
   console.log(`   WS    → ws://localhost:${PORT}`);
   console.log(`   CORS  → ${ALLOWED_ORIGINS.join(', ')}\n`);

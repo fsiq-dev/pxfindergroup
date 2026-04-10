@@ -22,7 +22,7 @@ export function RoomCard({ room, currentPlayer, onJoin, onEnter }: RoomCardProps
   return (
     <div
       className={`card transition-all duration-200 ${
-        isMember ? 'border-pxg-red/40 glow-red' : 'hover:border-gray-700'
+        isMember ? 'border-poke-red/40 glow-red' : 'hover:border-gray-700'
       } ${isFull ? 'opacity-75' : ''}`}
     >
       {/* Quest name + status */}
@@ -49,11 +49,11 @@ export function RoomCard({ room, currentPlayer, onJoin, onEnter }: RoomCardProps
         {room.members.map((member) => (
           <div
             key={member.id}
-            className="flex items-center gap-1.5 bg-pxg-dark rounded-lg px-2 py-1"
+            className="flex items-center gap-1.5 bg-poke-dark rounded-lg px-2 py-1"
             title={`${member.characterName} | Lv ${member.level} | ${member.world} | ${member.clan}`}
           >
             {member.id === room.leader.id && (
-              <Crown className="w-3 h-3 text-pxg-gold shrink-0" />
+              <Crown className="w-3 h-3 text-poke-gold shrink-0" />
             )}
             <span className="text-xs font-medium text-gray-200 truncate max-w-[80px]">
               {member.characterName}
@@ -63,7 +63,7 @@ export function RoomCard({ room, currentPlayer, onJoin, onEnter }: RoomCardProps
         ))}
         {/* Empty slots */}
         {Array.from({ length: room.maxPlayers - room.members.length }).map((_, i) => (
-          <div key={`empty-${i}`} className="flex items-center gap-1.5 bg-pxg-dark/50 border border-dashed border-pxg-dark-border rounded-lg px-2 py-1">
+          <div key={`empty-${i}`} className="flex items-center gap-1.5 bg-poke-dark/50 border border-dashed border-poke-dark-border rounded-lg px-2 py-1">
             <Users className="w-3 h-3 text-gray-700" />
             <span className="text-xs text-gray-700">Empty</span>
           </div>
@@ -92,7 +92,7 @@ export function RoomCard({ room, currentPlayer, onJoin, onEnter }: RoomCardProps
             <div
               key={i}
               className={`h-1.5 flex-1 rounded-full ${
-                i < room.members.length ? 'bg-pxg-red' : 'bg-pxg-dark-border'
+                i < room.members.length ? 'bg-poke-red' : 'bg-poke-dark-border'
               }`}
               style={{ minWidth: '16px' }}
             />

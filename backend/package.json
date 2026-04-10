@@ -1,7 +1,7 @@
 {
-  "name": "pxg-party-finder-backend",
+  "name": "poke-party-finder-backend",
   "version": "1.0.0",
-  "description": "PXG Party Finder - Backend WebSocket + Queue server",
+  "description": "Poke Party Finder - Backend WebSocket + Queue server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",

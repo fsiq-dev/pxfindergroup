@@ -31,10 +31,10 @@ export function PlayerSetup({ initialProfile, onSave, onClose }: PlayerSetupProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-pxg-dark-card border border-pxg-dark-border rounded-2xl p-6 w-full max-w-md animate-slide-up">
+      <div className="bg-poke-dark-card border border-poke-dark-border rounded-2xl p-6 w-full max-w-md animate-slide-up">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-pxg-red" />
+            <User className="w-5 h-5 text-poke-red" />
             <h2 className="text-lg font-bold text-white">
               {initialProfile ? 'Edit Profile' : 'Set Up Your Profile'}
             </h2>
@@ -103,8 +103,8 @@ export function PlayerSetup({ initialProfile, onSave, onClose }: PlayerSetupProp
                   onClick={() => setForm((p) => ({ ...p, clan: clan as Clan }))}
                   className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
                     form.clan === clan
-                      ? 'bg-pxg-red border-pxg-red text-white'
-                      : 'border-pxg-dark-border text-gray-400 hover:border-gray-500'
+                      ? 'bg-poke-red border-poke-red text-white'
+                      : 'border-poke-dark-border text-gray-400 hover:border-gray-500'
                   }`}
                 >
                   {clan}

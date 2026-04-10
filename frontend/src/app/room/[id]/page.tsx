@@ -105,7 +105,7 @@ export default function RoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pxg-dark flex items-center justify-center">
+      <div className="min-h-screen bg-poke-dark flex items-center justify-center">
         <div className="text-gray-500 animate-pulse">Loading room...</div>
       </div>
     );
@@ -113,7 +113,7 @@ export default function RoomPage() {
 
   if (!room) {
     return (
-      <div className="min-h-screen bg-pxg-dark flex items-center justify-center flex-col gap-4">
+      <div className="min-h-screen bg-poke-dark flex items-center justify-center flex-col gap-4">
         <p className="text-gray-400">Room not found or has ended.</p>
         <button onClick={() => router.push('/')} className="btn-primary">
           Back to Finder
@@ -125,9 +125,9 @@ export default function RoomPage() {
   const isFull = room.status === 'full';
 
   return (
-    <div className="min-h-screen bg-pxg-dark flex flex-col">
+    <div className="min-h-screen bg-poke-dark flex flex-col">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-pxg-dark-border bg-pxg-dark/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-poke-dark-border bg-poke-dark/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
           <button onClick={() => router.push('/')} className="btn-ghost p-1.5">
             <ArrowLeft className="w-5 h-5" />
@@ -168,9 +168,9 @@ export default function RoomPage() {
               className="btn-ghost p-1.5 relative"
               title={soundEnabled ? 'Mute notifications' : 'Unmute notifications'}
             >
-              <Bell className={`w-4 h-4 ${soundEnabled ? 'text-pxg-gold' : 'text-gray-600'}`} />
+              <Bell className={`w-4 h-4 ${soundEnabled ? 'text-poke-gold' : 'text-gray-600'}`} />
               {unread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-pxg-red text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-poke-red text-white text-[10px] font-bold flex items-center justify-center leading-none">
                   {unread > 99 ? '99+' : unread}
                 </span>
               )}
@@ -197,11 +197,11 @@ export default function RoomPage() {
             <p className="text-gray-400 text-sm leading-relaxed mb-3">{room.quest.description}</p>
             <div className="flex flex-col gap-2 text-sm mb-3">
               <div className="flex items-center gap-2 text-gray-400">
-                <Star className="w-4 h-4 text-pxg-gold" />
+                <Star className="w-4 h-4 text-poke-gold" />
                 Level {room.quest.minLevel}+ required
               </div>
               <div className="flex items-center gap-2 text-gray-400">
-                <Users className="w-4 h-4 text-pxg-red" />
+                <Users className="w-4 h-4 text-poke-red" />
                 {room.quest.minPlayers}–{room.quest.maxPlayers} players
               </div>
               <div className="flex items-center gap-2 text-gray-400">
@@ -209,11 +209,11 @@ export default function RoomPage() {
                 ~{room.quest.estimatedDuration}
               </div>
             </div>
-            <div className="border-t border-pxg-dark-border pt-3">
+            <div className="border-t border-poke-dark-border pt-3">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rewards</p>
               <div className="flex flex-wrap gap-1.5">
                 {room.quest.rewards.map((reward) => (
-                  <span key={reward} className="badge bg-pxg-gold/10 text-pxg-gold border-pxg-gold/20">
+                  <span key={reward} className="badge bg-poke-gold/10 text-poke-gold border-poke-gold/20">
                     {reward}
                   </span>
                 ))}
@@ -256,7 +256,7 @@ export default function RoomPage() {
                 <div
                   key={i}
                   className={`h-2 flex-1 rounded-full transition-all ${
-                    i < room.members.length ? 'bg-pxg-red' : 'bg-pxg-dark-border'
+                    i < room.members.length ? 'bg-poke-red' : 'bg-poke-dark-border'
                   }`}
                 />
               ))}
@@ -264,19 +264,19 @@ export default function RoomPage() {
 
             <div className="flex flex-col gap-2">
               {room.members.map((member) => (
-                <div key={member.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-pxg-dark">
-                  <div className="w-8 h-8 rounded-full bg-pxg-red/20 flex items-center justify-center text-pxg-red font-bold text-sm shrink-0">
+                <div key={member.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-poke-dark">
+                  <div className="w-8 h-8 rounded-full bg-poke-red/20 flex items-center justify-center text-poke-red font-bold text-sm shrink-0">
                     {member.characterName.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       {member.id === room.leader.id && (
-                        <Crown className="w-3 h-3 text-pxg-gold shrink-0" />
+                        <Crown className="w-3 h-3 text-poke-gold shrink-0" />
                       )}
                       <p className="text-sm font-semibold text-white truncate">
                         {member.characterName}
                         {member.id === player?.id && (
-                          <span className="text-pxg-red/70 ml-1 font-normal">(you)</span>
+                          <span className="text-poke-red/70 ml-1 font-normal">(you)</span>
                         )}
                       </p>
                     </div>
@@ -293,8 +293,8 @@ export default function RoomPage() {
 
               {/* Empty slots */}
               {Array.from({ length: room.maxPlayers - room.members.length }).map((_, i) => (
-                <div key={`empty-${i}`} className="flex items-center gap-3 py-2 px-3 rounded-lg border border-dashed border-pxg-dark-border">
-                  <div className="w-8 h-8 rounded-full bg-pxg-dark-border flex items-center justify-center shrink-0">
+                <div key={`empty-${i}`} className="flex items-center gap-3 py-2 px-3 rounded-lg border border-dashed border-poke-dark-border">
+                  <div className="w-8 h-8 rounded-full bg-poke-dark-border flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4 text-gray-700" />
                   </div>
                   <p className="text-sm text-gray-700">Waiting for player...</p>
@@ -303,8 +303,8 @@ export default function RoomPage() {
             </div>
 
             {isFull && (
-              <div className="mt-4 py-3 px-4 rounded-xl bg-pxg-red/10 border border-pxg-red/20 text-center">
-                <p className="text-pxg-red font-semibold text-sm">Party is full!</p>
+              <div className="mt-4 py-3 px-4 rounded-xl bg-poke-red/10 border border-poke-red/20 text-center">
+                <p className="text-poke-red font-semibold text-sm">Party is full!</p>
                 <p className="text-gray-400 text-xs mt-1">Coordinate with your team and start the quest!</p>
               </div>
             )}
@@ -313,7 +313,7 @@ export default function RoomPage() {
 
         {/* Right: Chat */}
         <div className="lg:col-span-2 card flex flex-col min-h-0 p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-pxg-dark-border">
+          <div className="px-4 py-3 border-b border-poke-dark-border">
             <h2 className="font-semibold text-white text-sm">Party Chat</h2>
           </div>
           {player ? (

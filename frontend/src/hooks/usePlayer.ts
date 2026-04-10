@@ -2,8 +2,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Player, World, Clan } from '@/lib/types';
 
-const PROFILE_KEY = 'pxg_player_profile';
-const SESSION_KEY = 'pxg_player_session';
+const PROFILE_KEY = 'poke_player_profile';
+const SESSION_KEY = 'poke_player_session';
 
 export interface PlayerProfile {
   characterName: string;

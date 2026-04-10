@@ -36,7 +36,7 @@ function ToastItem({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => vo
   }, [onDismiss]);
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-xl border animate-slide-up ${STYLES[toast.type]} bg-pxg-dark-card`}>
+    <div className={`flex items-start gap-3 p-3 rounded-xl border animate-slide-up ${STYLES[toast.type]} bg-poke-dark-card`}>
       <Icon className="w-4 h-4 shrink-0 mt-0.5" />
       <p className="text-sm flex-1">{toast.message}</p>
       <button onClick={onDismiss} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity">

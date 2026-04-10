@@ -27,8 +27,8 @@ export function QuestCard({
 
   return (
     <div
-      className={`card hover:border-pxg-dark-border/80 transition-all duration-200 flex flex-col gap-3 ${
-        inQueue ? 'border-pxg-gold/40 glow-red' : ''
+      className={`card hover:border-poke-dark-border/80 transition-all duration-200 flex flex-col gap-3 ${
+        inQueue ? 'border-poke-gold/40 glow-red' : ''
       }`}
     >
       {/* Header */}
@@ -84,7 +84,7 @@ export function QuestCard({
           </span>
         )}
         {(quest.playersInQueue ?? 0) > 0 && (
-          <span className="flex items-center gap-1 text-pxg-gold">
+          <span className="flex items-center gap-1 text-poke-gold">
             <Loader2 className="w-3 h-3 animate-spin" />
             {quest.playersInQueue} in queue
           </span>
@@ -98,7 +98,7 @@ export function QuestCard({
             onClick={() => onLeaveQueue(quest.id)}
             className="btn-secondary flex-1 text-sm flex items-center justify-center gap-1.5"
           >
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-pxg-gold" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-poke-gold" />
             Leave Queue
           </button>
         ) : (
@@ -124,7 +124,7 @@ export function QuestCard({
 
       {/* Level warning */}
       {hasPlayer && !meetsLevel && (
-        <p className="text-xs text-pxg-red/70 -mt-1">
+        <p className="text-xs text-poke-red/70 -mt-1">
           Requires level {quest.minLevel} (you are {playerLevel})
         </p>
       )}

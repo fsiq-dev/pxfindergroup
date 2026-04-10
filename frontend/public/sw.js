@@ -1,4 +1,4 @@
-// PXG Party Finder - Service Worker for Push Notifications
+// Poke Party Finder - Service Worker for Push Notifications
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));

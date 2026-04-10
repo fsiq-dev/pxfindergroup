@@ -27,10 +27,10 @@ export function CreateRoomModal({ quest, playerLevel, onConfirm, onClose }: Crea
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-pxg-dark-card border border-pxg-dark-border rounded-2xl p-6 w-full max-w-md animate-slide-up">
+      <div className="bg-poke-dark-card border border-poke-dark-border rounded-2xl p-6 w-full max-w-md animate-slide-up">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-pxg-red" />
+            <Plus className="w-5 h-5 text-poke-red" />
             <h2 className="text-lg font-bold text-white">Create Room</h2>
           </div>
           <button onClick={onClose} className="btn-ghost p-1">
@@ -85,8 +85,8 @@ export function CreateRoomModal({ quest, playerLevel, onConfirm, onClose }: Crea
                   onClick={() => setClan(c)}
                   className={`px-2 py-2 rounded-lg text-sm font-medium border transition-all ${
                     clan === c
-                      ? 'bg-pxg-red border-pxg-red text-white'
-                      : 'border-pxg-dark-border text-gray-400 hover:border-gray-500'
+                      ? 'bg-poke-red border-poke-red text-white'
+                      : 'border-poke-dark-border text-gray-400 hover:border-gray-500'
                   }`}
                 >
                   {c || 'Any'}

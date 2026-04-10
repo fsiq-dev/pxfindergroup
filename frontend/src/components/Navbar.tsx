@@ -11,24 +11,24 @@ interface NavbarProps {
 
 export function Navbar({ player, onSetupProfile, activeQueueCount }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-pxg-dark-border bg-pxg-dark/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-poke-dark-border bg-poke-dark/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 bg-pxg-red rounded-lg flex items-center justify-center glow-red">
+          <div className="w-8 h-8 bg-poke-red rounded-lg flex items-center justify-center glow-red">
             <Swords className="w-4 h-4 text-white" />
           </div>
           <div>
             <span className="font-bold text-white text-base leading-none">Poke</span>
-            <span className="font-bold text-pxg-red text-base leading-none ml-1">Party Finder</span>
+            <span className="font-bold text-poke-red text-base leading-none ml-1">Party Finder</span>
           </div>
         </div>
 
         {/* Status */}
         <div className="flex items-center gap-3">
           {activeQueueCount > 0 && (
-            <div className="flex items-center gap-1.5 badge bg-pxg-gold/10 text-pxg-gold border-pxg-gold/20 animate-pulse-slow">
-              <div className="w-1.5 h-1.5 rounded-full bg-pxg-gold" />
+            <div className="flex items-center gap-1.5 badge bg-poke-gold/10 text-poke-gold border-poke-gold/20 animate-pulse-slow">
+              <div className="w-1.5 h-1.5 rounded-full bg-poke-gold" />
               In queue ({activeQueueCount})
             </div>
           )}
@@ -36,7 +36,7 @@ export function Navbar({ player, onSetupProfile, activeQueueCount }: NavbarProps
           {player ? (
             <button
               onClick={onSetupProfile}
-              className="flex items-center gap-2.5 bg-pxg-dark-card border border-pxg-dark-border hover:border-pxg-red/40 rounded-lg px-3 py-1.5 transition-colors group"
+              className="flex items-center gap-2.5 bg-poke-dark-card border border-poke-dark-border hover:border-poke-red/40 rounded-lg px-3 py-1.5 transition-colors group"
             >
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-white leading-none">{player.characterName}</p>

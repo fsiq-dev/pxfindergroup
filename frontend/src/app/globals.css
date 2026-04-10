@@ -28,22 +28,22 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-pxg-red hover:bg-pxg-red-dark active:scale-95 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply bg-poke-red hover:bg-poke-red-dark active:scale-95 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-pxg-dark-hover hover:bg-pxg-dark-border border border-pxg-dark-border text-gray-200 font-medium px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply bg-poke-dark-hover hover:bg-poke-dark-border border border-poke-dark-border text-gray-200 font-medium px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-ghost {
-    @apply hover:bg-pxg-dark-hover text-gray-400 hover:text-gray-200 font-medium px-3 py-1.5 rounded-lg transition-all duration-150;
+    @apply hover:bg-poke-dark-hover text-gray-400 hover:text-gray-200 font-medium px-3 py-1.5 rounded-lg transition-all duration-150;
   }
   .card {
-    @apply bg-pxg-dark-card border border-pxg-dark-border rounded-xl p-4;
+    @apply bg-poke-dark-card border border-poke-dark-border rounded-xl p-4;
   }
   .input {
-    @apply bg-pxg-dark border border-pxg-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-pxg-red transition-colors placeholder-gray-600;
+    @apply bg-poke-dark border border-poke-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-poke-red transition-colors placeholder-gray-600;
   }
   .select {
-    @apply bg-pxg-dark border border-pxg-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-pxg-red transition-colors;
+    @apply bg-poke-dark border border-poke-dark-border text-gray-100 rounded-lg px-3 py-2 w-full focus:outline-none focus:border-poke-red transition-colors;
   }
   .badge {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border;

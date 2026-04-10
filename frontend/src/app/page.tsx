@@ -184,7 +184,7 @@ export default function HomePage() {
   const waitingRooms = rooms.filter((r) => r.status === 'waiting');
 
   return (
-    <div className="min-h-screen bg-pxg-dark">
+    <div className="min-h-screen bg-poke-dark">
       <Navbar
         player={player}
         onSetupProfile={() => setShowSetup(true)}
@@ -195,10 +195,10 @@ export default function HomePage() {
         {/* Hero */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-white mb-2">
-            Find Your <span className="text-pxg-red">Party</span>
+            Find Your <span className="text-poke-red">Party</span>
           </h1>
           <p className="text-gray-400">
-            Join or create groups for PXG quests. Real-time matchmaking — no refreshing needed.
+            Join or create groups for Poke quests. Real-time matchmaking — no refreshing needed.
           </p>
         </div>
 
@@ -216,13 +216,13 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg border transition-colors ${viewMode === 'grid' ? 'border-pxg-red text-pxg-red bg-pxg-red/10' : 'border-pxg-dark-border text-gray-500 hover:text-gray-300'}`}
+              className={`p-2 rounded-lg border transition-colors ${viewMode === 'grid' ? 'border-poke-red text-poke-red bg-poke-red/10' : 'border-poke-dark-border text-gray-500 hover:text-gray-300'}`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg border transition-colors ${viewMode === 'list' ? 'border-pxg-red text-pxg-red bg-pxg-red/10' : 'border-pxg-dark-border text-gray-500 hover:text-gray-300'}`}
+              className={`p-2 rounded-lg border transition-colors ${viewMode === 'list' ? 'border-poke-red text-poke-red bg-poke-red/10' : 'border-poke-dark-border text-gray-500 hover:text-gray-300'}`}
             >
               <List className="w-4 h-4" />
             </button>
@@ -237,8 +237,8 @@ export default function HomePage() {
               onClick={() => setFilter(cat.value)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
                 filter === cat.value
-                  ? 'bg-pxg-red border-pxg-red text-white'
-                  : 'border-pxg-dark-border text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                  ? 'bg-poke-red border-poke-red text-white'
+                  : 'border-poke-dark-border text-gray-400 hover:text-gray-200 hover:border-gray-600'
               }`}
             >
               {cat.label}

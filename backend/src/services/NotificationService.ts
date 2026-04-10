@@ -12,7 +12,7 @@ export class NotificationService {
   constructor() {
     const publicKey = process.env.VAPID_PUBLIC_KEY;
     const privateKey = process.env.VAPID_PRIVATE_KEY;
-    const email = process.env.VAPID_EMAIL ?? 'admin@pxgpartyfinder.com';
+    const email = process.env.VAPID_EMAIL ?? 'admin@pokepartyfinder.com';
 
     if (publicKey && privateKey) {
       webpush.setVapidDetails(`mailto:${email}`, publicKey, privateKey);

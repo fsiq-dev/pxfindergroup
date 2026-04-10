@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        pxg: {
+        poke: {
           red: '#e53e3e',
           'red-dark': '#c53030',
           'red-light': '#fc8181',
