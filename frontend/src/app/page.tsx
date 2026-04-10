@@ -150,8 +150,14 @@ export default function HomePage() {
   function handleJoinRoom(roomId: string) {
     if (!player) { setShowSetup(true); return; }
 
+    // Se já está nessa room (pelo state ou pelo ID do player), redireciona direto
+    if (currentRoom?.id === roomId) {
+      router.push(`/room/${roomId}`);
+      return;
+    }
+
     const room = rooms.find((r) => r.id === roomId);
-    if (room?.members.some((m) => m.id === player.id)) {
+    if (room?.members.some((m) => m.id === player.id || m.characterName === player.characterName)) {
       router.push(`/room/${roomId}`);
       return;
     }

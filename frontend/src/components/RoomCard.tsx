@@ -10,7 +10,9 @@ interface RoomCardProps {
 }
 
 export function RoomCard({ room, currentPlayer, onJoin, onEnter }: RoomCardProps) {
-  const isMember = currentPlayer && room.members.some((m) => m.id === currentPlayer.id);
+  const isMember = currentPlayer && room.members.some(
+    (m) => m.id === currentPlayer.id || m.characterName === currentPlayer.characterName
+  );
   const isFull = room.status === 'full';
   const meetsLevel = currentPlayer && currentPlayer.level >= room.filters.minLevel;
   const meetsWorld = !room.filters.world || (currentPlayer?.world === room.filters.world);
