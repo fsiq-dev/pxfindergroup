@@ -70,10 +70,16 @@ export default function RoomPage() {
     onError: (msg: string) => addToast('error', msg),
   });
 
-  // Re-setup player if needed
+  // Re-setup player if needed (pass existing ID to preserve room membership)
   useEffect(() => {
     if (profile && !player) setupPlayer(profile);
   }, [profile, player, setupPlayer]);
+
+  // On mount, if player is already in session, re-register with server using same ID
+  useEffect(() => {
+    if (profile && player) setupPlayer(profile, player.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleLeave() {
     leaveRoom(roomId);

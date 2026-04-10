@@ -94,8 +94,8 @@ export function useSocket(callbacks: SocketCallbacks) {
     };
   }, []);
 
-  const setupPlayer = useCallback((profile: PlayerProfile) => {
-    getSocket().emit('player:setup', profile);
+  const setupPlayer = useCallback((profile: PlayerProfile, existingId?: string) => {
+    getSocket().emit('player:setup', { ...profile, existingId });
   }, []);
 
   const joinQueue = useCallback((questId: string) => {

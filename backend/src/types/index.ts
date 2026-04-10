@@ -107,6 +107,7 @@ export interface PlayerSetupPayload {
   world: World;
   level: number;
   clan: Clan;
+  existingId?: string;
 }
 
 export interface JoinQueuePayload {

@@ -36,7 +36,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   // ─── Player Setup ──────────────────────────────────────────────────────────
   socket.on('player:setup', async (payload: PlayerSetupPayload) => {
     const player: Player = {
-      id: uuidv4(),
+      id: payload.existingId ?? uuidv4(),
       characterName: payload.characterName,
       world: payload.world,
       level: payload.level,
@@ -47,16 +47,28 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
 
     connectedPlayers.set(socket.id, player);
 
+    // If reconnecting with an existing ID, update socketId in any room they're in
+    if (payload.existingId) {
+      const room = queueService.getPlayerRoom(payload.existingId);
+      if (room) {
+        const member = room.members.find((m) => m.id === payload.existingId);
+        if (member) {
+          member.socketId = socket.id;
+        }
+        await socket.join(room.id);
+      }
+    }
+
     // Upsert player in DB
     try {
       await prisma.player.upsert({
-        where: { socketId: socket.id },
+        where: { id: player.id },
         update: {
-          id: player.id,
           characterName: player.characterName,
           world: player.world,
           level: player.level,
           clan: player.clan,
+          socketId: socket.id,
         },
         create: {
           id: player.id,
