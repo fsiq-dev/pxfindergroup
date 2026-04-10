@@ -9,9 +9,10 @@ import { useSocket } from '@/hooks/useSocket';
 import { Room, ChatMessage, Player } from '@/lib/types';
 import { api } from '@/lib/api';
 import {
-  ArrowLeft, ExternalLink, Lock, Unlock, Crown, Users, Clock, Star
+  ArrowLeft, ExternalLink, Lock, Unlock, Crown, Users, Clock, Star, Bell
 } from 'lucide-react';
 import { WORLD_COLORS, CLAN_COLORS, DIFFICULTY_COLORS } from '@/lib/types';
+import { playMessageSound } from '@/lib/sound';
 
 export default function RoomPage() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function RoomPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unread, setUnread] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const addToast = useCallback((type: ToastItem['type'], message: string) => {
     const id = uuidv4();
@@ -65,6 +68,11 @@ export default function RoomPage() {
     onChatMessage: (msgRoomId: string, message: ChatMessage) => {
       if (msgRoomId === roomId) {
         setMessages((prev) => [...prev, message]);
+        // Play sound and increment unread for messages from others
+        if (message.playerId !== player?.id) {
+          setUnread((n) => n + 1);
+          if (soundEnabled) playMessageSound();
+        }
       }
     },
     onError: (msg: string) => addToast('error', msg),
@@ -92,6 +100,7 @@ export default function RoomPage() {
 
   function handleSend(content: string) {
     sendMessage(roomId, content);
+    setUnread(0);
   }
 
   if (loading) {
@@ -152,6 +161,21 @@ export default function RoomPage() {
               <ExternalLink className="w-3.5 h-3.5" />
               Wiki
             </a>
+
+            {/* Bell / sound toggle */}
+            <button
+              onClick={() => { setSoundEnabled((s) => !s); setUnread(0); }}
+              className="btn-ghost p-1.5 relative"
+              title={soundEnabled ? 'Mute notifications' : 'Unmute notifications'}
+            >
+              <Bell className={`w-4 h-4 ${soundEnabled ? 'text-pxg-gold' : 'text-gray-600'}`} />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-pxg-red text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </button>
+
             {player?.characterName === room.leader.characterName && (
               <button onClick={handleCloseRoom} className="btn-secondary text-sm text-red-600 border-red-600/30 hover:bg-red-600/10">
                 Close Room
@@ -298,6 +322,7 @@ export default function RoomPage() {
               messages={messages}
               currentPlayerId={player.id}
               onSendMessage={handleSend}
+              onFocus={() => setUnread(0)}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-600 text-sm">

@@ -8,6 +8,7 @@ interface ChatProps {
   messages: ChatMessage[];
   currentPlayerId: string;
   onSendMessage: (content: string) => void;
+  onFocus?: () => void;
 }
 
 function formatTime(timestamp: string): string {
@@ -17,7 +18,7 @@ function formatTime(timestamp: string): string {
   });
 }
 
-export function Chat({ room, messages, currentPlayerId, onSendMessage }: ChatProps) {
+export function Chat({ room, messages, currentPlayerId, onSendMessage, onFocus }: ChatProps) {
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -109,6 +110,7 @@ export function Chat({ room, messages, currentPlayerId, onSendMessage }: ChatPro
           placeholder="Type a message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onFocus={onFocus}
           maxLength={500}
         />
         <button
