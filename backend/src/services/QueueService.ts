@@ -4,11 +4,11 @@ import {
   Quest,
   Room,
   RoomFilters,
-  RoomStatus,
   ChatMessage,
   QueueEntry,
 } from '../types';
 import { getQuestById, requiresUniqueClan } from '../data/quests';
+import { prisma } from '../lib/prisma';
 
 export interface MatchResult {
   matched: boolean;
@@ -32,7 +32,7 @@ export class QueueService {
 
   // ─── Queue management ──────────────────────────────────────────────────────
 
-  joinQueue(player: Player, questId: string): MatchResult {
+  async joinQueue(player: Player, questId: string): Promise<MatchResult> {
     const quest = getQuestById(questId);
     if (!quest) return { matched: false };
 
@@ -42,7 +42,7 @@ export class QueueService {
     // ── Verifica se já existe uma room aberta compatível ──────────────────────
     const suitableRoom = this.findSuitableRoom(questId, player);
     if (suitableRoom) {
-      const result = this.joinRoom(suitableRoom.id, player);
+      const result = await this.joinRoom(suitableRoom.id, player);
       if (result.success && result.room) {
         return { matched: true, room: result.room, isNewRoom: false };
       }
@@ -61,10 +61,10 @@ export class QueueService {
     if (requiresUniqueClan(questId)) {
       const uniqueClans = new Set(queue.map((e) => e.player.clan));
       if (uniqueClans.size >= quest.minPlayers) {
-        return { ...this.autoMatch(quest, queue), isNewRoom: true };
+        return { ...(await this.autoMatch(quest, queue)), isNewRoom: true };
       }
     } else if (queue.length >= quest.minPlayers) {
-      return { ...this.autoMatch(quest, queue), isNewRoom: true };
+      return { ...(await this.autoMatch(quest, queue)), isNewRoom: true };
     }
 
     return { matched: false };
@@ -110,11 +110,10 @@ export class QueueService {
     return this.playerQueueIndex.get(playerId);
   }
 
-  private autoMatch(quest: Quest, queue: QueueEntry[]): MatchResult {
+  private async autoMatch(quest: Quest, queue: QueueEntry[]): Promise<MatchResult> {
     let playersToMatch: QueueEntry[];
 
     if (requiresUniqueClan(quest.id)) {
-      // Seleciona um jogador por clã (primeiro encontrado de cada) até minPlayers
       const seenClans = new Set<string>();
       const selected: QueueEntry[] = [];
 
@@ -127,7 +126,6 @@ export class QueueService {
       }
       playersToMatch = selected;
 
-      // Remove os selecionados da fila
       for (const entry of playersToMatch) {
         const idx = queue.findIndex((e) => e.player.id === entry.player.id);
         if (idx !== -1) queue.splice(idx, 1);
@@ -136,13 +134,13 @@ export class QueueService {
       playersToMatch = queue.splice(0, quest.minPlayers);
     }
 
-    // Remove do index
+    // Remove from index
     for (const entry of playersToMatch) {
       this.playerQueueIndex.delete(entry.player.id);
     }
 
     const [leader, ...rest] = playersToMatch.map((e) => e.player);
-    const room = this.buildRoom(quest, leader, rest, {
+    const room = await this.buildRoom(quest, leader, rest, {
       minLevel: quest.minLevel,
     });
 
@@ -151,29 +149,29 @@ export class QueueService {
 
   // ─── Room management ───────────────────────────────────────────────────────
 
-  createRoom(
+  async createRoom(
     questId: string,
     leader: Player,
     filters: RoomFilters
-  ): Room | null {
+  ): Promise<Room | null> {
     const quest = getQuestById(questId);
     if (!quest) return null;
 
-    // Remove leader from any queue
     this.leaveQueueByPlayerId(leader.id);
 
-    const room = this.buildRoom(quest, leader, [], filters);
+    const room = await this.buildRoom(quest, leader, [], filters);
     return room;
   }
 
-  private buildRoom(
+  private async buildRoom(
     quest: Quest,
     leader: Player,
     additionalMembers: Player[],
     filters: RoomFilters
-  ): Room {
+  ): Promise<Room> {
     const roomId = uuidv4();
     const allMembers = [leader, ...additionalMembers];
+    const status = allMembers.length >= quest.maxPlayers ? 'full' : 'waiting';
 
     const room: Room = {
       id: roomId,
@@ -181,7 +179,7 @@ export class QueueService {
       quest,
       leader,
       members: allMembers,
-      status: allMembers.length >= quest.maxPlayers ? 'full' : 'waiting',
+      status,
       filters,
       maxPlayers: quest.maxPlayers,
       messages: [],
@@ -194,17 +192,37 @@ export class QueueService {
       this.playerRoomIndex.set(member.id, roomId);
     }
 
+    // Persist to DB
+    try {
+      await prisma.room.create({
+        data: {
+          id: roomId,
+          questId: quest.id,
+          leaderId: leader.id,
+          status,
+          maxPlayers: quest.maxPlayers,
+          filterMinLevel: filters.minLevel,
+          filterWorld: filters.world ?? null,
+          filterClan: filters.clan ?? null,
+          members: {
+            create: allMembers.map((m) => ({ playerId: m.id })),
+          },
+        },
+      });
+    } catch (err) {
+      console.error('[DB] Failed to persist room:', err);
+    }
+
     return room;
   }
 
-  joinRoom(roomId: string, player: Player): { success: boolean; room?: Room; error?: string } {
+  async joinRoom(roomId: string, player: Player): Promise<{ success: boolean; room?: Room; error?: string }> {
     const room = this.rooms.get(roomId);
     if (!room) return { success: false, error: 'Room not found' };
     if (room.status === 'full') return { success: false, error: 'Room is full' };
     if (room.status === 'in-progress') return { success: false, error: 'Quest already in progress' };
     if (room.members.some((m) => m.id === player.id)) return { success: false, error: 'Already in room' };
 
-    // Clan único por quest multi-clan
     if (requiresUniqueClan(room.questId)) {
       const clanAlreadyInRoom = room.members.some((m) => m.clan === player.clan);
       if (clanAlreadyInRoom) {
@@ -215,27 +233,16 @@ export class QueueService {
       }
     }
 
-    // Check filters
     if (player.level < room.filters.minLevel) {
-      return {
-        success: false,
-        error: `Minimum level required: ${room.filters.minLevel}`,
-      };
+      return { success: false, error: `Minimum level required: ${room.filters.minLevel}` };
     }
     if (room.filters.world && player.world !== room.filters.world) {
-      return {
-        success: false,
-        error: `This room requires World: ${room.filters.world}`,
-      };
+      return { success: false, error: `This room requires World: ${room.filters.world}` };
     }
     if (room.filters.clan && room.filters.clan !== 'None' && player.clan !== room.filters.clan) {
-      return {
-        success: false,
-        error: `This room requires Clan: ${room.filters.clan}`,
-      };
+      return { success: false, error: `This room requires Clan: ${room.filters.clan}` };
     }
 
-    // Remove player from queue if they were in one
     this.leaveQueueByPlayerId(player.id);
 
     room.members.push(player);
@@ -246,10 +253,21 @@ export class QueueService {
     }
 
     this.playerRoomIndex.set(player.id, roomId);
+
+    // Persist to DB
+    try {
+      await prisma.roomMember.create({ data: { roomId, playerId: player.id } });
+      if (room.status === 'full') {
+        await prisma.room.update({ where: { id: roomId }, data: { status: 'full' } });
+      }
+    } catch (err) {
+      console.error('[DB] Failed to persist room member:', err);
+    }
+
     return { success: true, room };
   }
 
-  leaveRoom(roomId: string, playerId: string): Room | null {
+  async leaveRoom(roomId: string, playerId: string): Promise<Room | null> {
     const room = this.rooms.get(roomId);
     if (!room) return null;
 
@@ -263,6 +281,11 @@ export class QueueService {
     // If room is now empty, remove it
     if (room.members.length === 0) {
       this.rooms.delete(roomId);
+      try {
+        await prisma.room.delete({ where: { id: roomId } });
+      } catch (err) {
+        console.error('[DB] Failed to delete empty room:', err);
+      }
       return null;
     }
 
@@ -276,31 +299,66 @@ export class QueueService {
       room.status = 'waiting';
     }
 
+    // Persist to DB
+    try {
+      await prisma.roomMember.delete({ where: { roomId_playerId: { roomId, playerId } } });
+      await prisma.room.update({
+        where: { id: roomId },
+        data: { status: room.status, leaderId: room.leader.id },
+      });
+    } catch (err) {
+      console.error('[DB] Failed to update room after leave:', err);
+    }
+
     return room;
   }
 
-  closeRoom(roomId: string, requesterId: string): { success: boolean; memberIds?: string[]; error?: string } {
+  async closeRoom(roomId: string, requesterId: string): Promise<{ success: boolean; memberIds?: string[]; error?: string }> {
     const room = this.rooms.get(roomId);
     if (!room) return { success: false, error: 'Room not found' };
     if (room.leader.id !== requesterId) return { success: false, error: 'Only the leader can close the room' };
 
     const memberIds = room.members.map((m) => m.id);
 
-    // Remove all members from index
     for (const id of memberIds) {
       this.playerRoomIndex.delete(id);
     }
 
     this.rooms.delete(roomId);
+
+    // Persist to DB (cascade deletes members and messages)
+    try {
+      await prisma.room.delete({ where: { id: roomId } });
+    } catch (err) {
+      console.error('[DB] Failed to delete room:', err);
+    }
+
     return { success: true, memberIds };
   }
 
-  addMessage(roomId: string, message: ChatMessage): Room | undefined {
+  async addMessage(roomId: string, message: ChatMessage): Promise<Room | undefined> {
     const room = this.rooms.get(roomId);
     if (!room) return undefined;
 
     room.messages.push(message);
     room.updatedAt = new Date();
+
+    // Persist to DB
+    try {
+      await prisma.message.create({
+        data: {
+          id: message.id,
+          roomId,
+          playerId: message.playerId,
+          playerName: message.playerName,
+          content: message.content,
+          timestamp: message.timestamp,
+        },
+      });
+    } catch (err) {
+      console.error('[DB] Failed to persist message:', err);
+    }
+
     return room;
   }
 
@@ -318,20 +376,18 @@ export class QueueService {
     return this.rooms.get(roomId);
   }
 
-  handlePlayerDisconnect(playerId: string): { leftRoom?: Room | null; leftQuestId?: string } {
+  async handlePlayerDisconnect(playerId: string): Promise<{ leftRoom?: Room | null; leftQuestId?: string }> {
     const result: { leftRoom?: Room | null; leftQuestId?: string } = {};
 
-    // Remove from queue
     const questId = this.playerQueueIndex.get(playerId);
     if (questId) {
       this.leaveQueue(playerId, questId);
       result.leftQuestId = questId;
     }
 
-    // Remove from room
     const roomId = this.playerRoomIndex.get(playerId);
     if (roomId) {
-      result.leftRoom = this.leaveRoom(roomId, playerId);
+      result.leftRoom = await this.leaveRoom(roomId, playerId);
     }
 
     return result;

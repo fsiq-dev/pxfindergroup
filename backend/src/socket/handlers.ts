@@ -14,6 +14,7 @@ import {
   SendMessagePayload,
   SubscribePushPayload,
 } from '../types';
+import { prisma } from '../lib/prisma';
 
 // In-memory player registry: socketId → Player
 const connectedPlayers = new Map<string, Player>();
@@ -33,7 +34,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   console.log(`[Socket] Client connected: ${socket.id}`);
 
   // ─── Player Setup ──────────────────────────────────────────────────────────
-  socket.on('player:setup', (payload: PlayerSetupPayload) => {
+  socket.on('player:setup', async (payload: PlayerSetupPayload) => {
     const player: Player = {
       id: uuidv4(),
       characterName: payload.characterName,
@@ -45,6 +46,30 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     };
 
     connectedPlayers.set(socket.id, player);
+
+    // Upsert player in DB
+    try {
+      await prisma.player.upsert({
+        where: { socketId: socket.id },
+        update: {
+          id: player.id,
+          characterName: player.characterName,
+          world: player.world,
+          level: player.level,
+          clan: player.clan,
+        },
+        create: {
+          id: player.id,
+          characterName: player.characterName,
+          world: player.world,
+          level: player.level,
+          clan: player.clan,
+          socketId: socket.id,
+        },
+      });
+    } catch (err) {
+      console.error('[DB] Failed to upsert player:', err);
+    }
 
     socket.emit('player:ready', {
       player,
@@ -75,7 +100,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
       return;
     }
 
-    const result = queueService.joinQueue(player, payload.questId);
+    const result = await queueService.joinQueue(player, payload.questId);
 
     socket.emit('queue:joined', { questId: payload.questId });
     broadcastQueueUpdate(io, payload.questId);
@@ -84,7 +109,6 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
       const room = result.room;
 
       if (result.isNewRoom) {
-        // Room nova: notifica todos os membros que foram matchados
         for (const member of room.members) {
           const memberSocket = io.sockets.sockets.get(member.socketId);
           if (memberSocket) {
@@ -95,7 +119,6 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
         await notificationService.notifyRoomFormed(room);
         console.log(`[Queue] Auto-matched ${room.members.length} players for "${room.quest.name}"`);
       } else {
-        // Room existente: apenas o novo player entra, demais recebem room:updated
         await socket.join(room.id);
         socket.emit('room:matched', { room });
         socket.to(room.id).emit('room:updated', { room });
@@ -128,7 +151,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
       return;
     }
 
-    const room = queueService.createRoom(payload.questId, player, payload.filters);
+    const room = await queueService.createRoom(payload.questId, player, payload.filters);
     if (!room) {
       socket.emit('error', { message: 'Quest not found' });
       return;
@@ -138,7 +161,6 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     socket.emit('room:created', { room });
     broadcastRoomsUpdate(io);
 
-    // Notify interested subscribers
     await notificationService.notifyNewRoomCreated(room);
 
     console.log(`[Room] Created: "${room.quest.name}" by ${player.characterName}`);
@@ -151,7 +173,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
       return;
     }
 
-    const result = queueService.joinRoom(payload.roomId, player);
+    const result = await queueService.joinRoom(payload.roomId, player);
     if (!result.success || !result.room) {
       socket.emit('error', { message: result.error ?? 'Cannot join room' });
       return;
@@ -161,7 +183,6 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     await socket.join(room.id);
     socket.emit('room:joined', { room });
 
-    // Notify others in the room
     socket.to(room.id).emit('room:updated', { room });
 
     if (room.status === 'full') {
@@ -173,11 +194,11 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     console.log(`[Room] ${player.characterName} joined room "${room.quest.name}"`);
   });
 
-  socket.on('room:leave', (payload: LeaveRoomPayload) => {
+  socket.on('room:leave', async (payload: LeaveRoomPayload) => {
     const player = connectedPlayers.get(socket.id);
     if (!player) return;
 
-    const updatedRoom = queueService.leaveRoom(payload.roomId, player.id);
+    const updatedRoom = await queueService.leaveRoom(payload.roomId, player.id);
     socket.leave(payload.roomId);
     socket.emit('room:left', { roomId: payload.roomId });
 
@@ -189,20 +210,18 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     console.log(`[Room] ${player.characterName} left room ${payload.roomId}`);
   });
 
-  socket.on('room:close', (payload: CloseRoomPayload) => {
+  socket.on('room:close', async (payload: CloseRoomPayload) => {
     const player = connectedPlayers.get(socket.id);
     if (!player) return;
 
-    const result = queueService.closeRoom(payload.roomId, player.id);
+    const result = await queueService.closeRoom(payload.roomId, player.id);
     if (!result.success) {
       socket.emit('error', { message: result.error ?? 'Cannot close room' });
       return;
     }
 
-    // Notifica todos na room que ela foi fechada
     io.to(payload.roomId).emit('room:closed', { roomId: payload.roomId });
 
-    // Remove todos do socket room
     const socketsInRoom = io.sockets.adapter.rooms.get(payload.roomId);
     if (socketsInRoom) {
       for (const socketId of socketsInRoom) {
@@ -230,16 +249,14 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
       timestamp: new Date(),
     };
 
-    const updatedRoom = queueService.addMessage(payload.roomId, message);
+    const updatedRoom = await queueService.addMessage(payload.roomId, message);
     if (!updatedRoom) {
       socket.emit('error', { message: 'Room not found' });
       return;
     }
 
-    // Broadcast to all in room (including sender)
     io.to(payload.roomId).emit('chat:message', { roomId: payload.roomId, message });
 
-    // Push notification to offline/background members
     const memberIds = updatedRoom.members.map((m) => m.id);
     await notificationService.notifyChatMessage(
       payload.roomId,
@@ -251,11 +268,11 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   });
 
   // ─── Disconnect ────────────────────────────────────────────────────────────
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     const player = connectedPlayers.get(socket.id);
     if (!player) return;
 
-    const { leftRoom, leftQuestId } = queueService.handlePlayerDisconnect(player.id);
+    const { leftRoom, leftQuestId } = await queueService.handlePlayerDisconnect(player.id);
 
     if (leftRoom) {
       io.to(leftRoom.id).emit('room:updated', { room: leftRoom });

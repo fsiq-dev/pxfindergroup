@@ -42,8 +42,14 @@ export default function RoomPage() {
     });
   }, [roomId, addToast]);
 
-  const { setupPlayer, sendMessage, leaveRoom } = useSocket({
+  const { setupPlayer, sendMessage, leaveRoom, closeRoom } = useSocket({
     onPlayerReady: (p: Player) => setPlayer(p),
+    onRoomClosed: (closedRoomId: string) => {
+      if (closedRoomId === roomId) {
+        addToast('info', 'A sala foi encerrada pelo líder.');
+        router.push('/');
+      }
+    },
     onRoomUpdated: (updatedRoom: Room) => {
       if (updatedRoom.id === roomId) setRoom(updatedRoom);
     },
@@ -72,6 +78,10 @@ export default function RoomPage() {
   function handleLeave() {
     leaveRoom(roomId);
     router.push('/');
+  }
+
+  function handleCloseRoom() {
+    closeRoom(roomId);
   }
 
   function handleSend(content: string) {
@@ -136,6 +146,11 @@ export default function RoomPage() {
               <ExternalLink className="w-3.5 h-3.5" />
               Wiki
             </a>
+            {player?.characterName === room.leader.characterName && (
+              <button onClick={handleCloseRoom} className="btn-secondary text-sm text-red-600 border-red-600/30 hover:bg-red-600/10">
+                Close Room
+              </button>
+            )}
             <button onClick={handleLeave} className="btn-secondary text-sm text-red-400 border-red-500/30 hover:bg-red-500/10">
               Leave
             </button>
