@@ -82,22 +82,31 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     if (result.matched && result.room) {
       const room = result.room;
 
-      // Put all matched players into a socket.io room
-      for (const member of room.members) {
-        const memberSocket = io.sockets.sockets.get(member.socketId);
-        if (memberSocket) {
-          await memberSocket.join(room.id);
-          memberSocket.emit('room:matched', { room });
+      if (result.isNewRoom) {
+        // Room nova: notifica todos os membros que foram matchados
+        for (const member of room.members) {
+          const memberSocket = io.sockets.sockets.get(member.socketId);
+          if (memberSocket) {
+            await memberSocket.join(room.id);
+            memberSocket.emit('room:matched', { room });
+          }
         }
+        await notificationService.notifyRoomFormed(room);
+        console.log(`[Queue] Auto-matched ${room.members.length} players for "${room.quest.name}"`);
+      } else {
+        // Room existente: apenas o novo player entra, demais recebem room:updated
+        await socket.join(room.id);
+        socket.emit('room:matched', { room });
+        socket.to(room.id).emit('room:updated', { room });
+
+        if (room.status === 'full') {
+          io.to(room.id).emit('room:full', { room });
+          await notificationService.notifyRoomFormed(room);
+        }
+        console.log(`[Queue] ${player.characterName} auto-joined existing room "${room.quest.name}"`);
       }
 
-      // Notify via push
-      await notificationService.notifyRoomFormed(room);
       broadcastRoomsUpdate(io);
-
-      console.log(
-        `[Queue] Auto-matched ${room.members.length} players for "${room.quest.name}"`
-      );
     }
   });
 

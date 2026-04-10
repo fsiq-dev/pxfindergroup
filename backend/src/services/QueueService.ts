@@ -10,9 +10,11 @@ import {
 } from '../types';
 import { getQuestById, requiresUniqueClan } from '../data/quests';
 
-interface MatchResult {
+export interface MatchResult {
   matched: boolean;
   room?: Room;
+  /** true = room nova criada; false = player adicionado a room existente */
+  isNewRoom?: boolean;
 }
 
 export class QueueService {
@@ -37,6 +39,16 @@ export class QueueService {
     // Remove from any existing queue first
     this.leaveQueueByPlayerId(player.id);
 
+    // ── Verifica se já existe uma room aberta compatível ──────────────────────
+    const suitableRoom = this.findSuitableRoom(questId, player);
+    if (suitableRoom) {
+      const result = this.joinRoom(suitableRoom.id, player);
+      if (result.success && result.room) {
+        return { matched: true, room: result.room, isNewRoom: false };
+      }
+    }
+
+    // ── Adiciona à fila ───────────────────────────────────────────────────────
     if (!this.queues.has(questId)) {
       this.queues.set(questId, []);
     }
@@ -45,18 +57,30 @@ export class QueueService {
     queue.push({ player, questId, joinedAt: new Date() });
     this.playerQueueIndex.set(player.id, questId);
 
-    // Check if we have enough players for auto-match
+    // ── Tenta auto-match entre os da fila ─────────────────────────────────────
     if (requiresUniqueClan(questId)) {
-      // Precisa de minPlayers com clãs todos distintos
       const uniqueClans = new Set(queue.map((e) => e.player.clan));
       if (uniqueClans.size >= quest.minPlayers) {
-        return this.autoMatch(quest, queue);
+        return { ...this.autoMatch(quest, queue), isNewRoom: true };
       }
     } else if (queue.length >= quest.minPlayers) {
-      return this.autoMatch(quest, queue);
+      return { ...this.autoMatch(quest, queue), isNewRoom: true };
     }
 
     return { matched: false };
+  }
+
+  /** Encontra a primeira room aberta da quest onde o player atende todos os requisitos */
+  private findSuitableRoom(questId: string, player: Player): Room | undefined {
+    return Array.from(this.rooms.values()).find((room) => {
+      if (room.questId !== questId) return false;
+      if (room.status !== 'waiting') return false;
+      if (player.level < room.filters.minLevel) return false;
+      if (room.filters.world && player.world !== room.filters.world) return false;
+      if (room.filters.clan && room.filters.clan !== 'None' && player.clan !== room.filters.clan) return false;
+      if (requiresUniqueClan(questId) && room.members.some((m) => m.clan === player.clan)) return false;
+      return true;
+    });
   }
 
   leaveQueue(playerId: string, questId: string): boolean {
