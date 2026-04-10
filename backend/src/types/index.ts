@@ -29,7 +29,7 @@ export type Clan =
 
 export type QuestDifficulty = 'easy' | 'medium' | 'hard' | 'extreme';
 
-export type QuestCategory = 'kanto';
+export type QuestCategory = 'kanto' | 'special';
 
 export type RoomStatus = 'waiting' | 'full' | 'in-progress' | 'completed';
 

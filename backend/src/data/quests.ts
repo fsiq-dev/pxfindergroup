@@ -1,6 +1,49 @@
 import { Quest } from '../types';
 
 export const QUESTS: Quest[] = [
+  // ─── SARKIES QUEST ──────────────────────────────────────────────────────────
+  {
+    id: 'sarkies-mansion',
+    name: 'Sarkies Quest — Mansão',
+    description:
+      'Investigue os planos do Dr. Sarkies na sua mansão. O grupo deve coordenar a ativação simultânea de alavancas em três andares e derrotar guardas antes que as barreiras laser se fechem.',
+    minPlayers: 6,
+    maxPlayers: 9,
+    minLevel: 400,
+    category: 'special',
+    difficulty: 'hard',
+    wikiUrl: 'https://wiki.pokexgames.com/index.php/Sarkies_Quest',
+    estimatedDuration: '30-60 min',
+    rewards: [
+      '80 kk EXP',
+      'X-Attack Held Item',
+      'Palladium Ore',
+      'Shiny Celebi Toy',
+    ],
+    tags: ['sarkies', 'mansion', 'group', 'coordination'],
+  },
+  {
+    id: 'sarkies-dungeons',
+    name: 'Sarkies Quest — Dungeons',
+    description:
+      'Adentre as Cyborg Dungeons de 4 andares e derrote 72 inimigos ciborgues. Atenção: apenas magias do elemento correspondente causam dano. Limite de 90 minutos e 2 tentativas diárias.',
+    minPlayers: 3,
+    maxPlayers: 6,
+    minLevel: 500,
+    category: 'special',
+    difficulty: 'extreme',
+    wikiUrl: 'https://wiki.pokexgames.com/index.php/Sarkies_Quest',
+    estimatedDuration: '60-90 min',
+    rewards: [
+      '80 kk EXP',
+      '2 kk Nightmare EXP',
+      'Golden Gauntlet',
+      'Girl Dress',
+      '100 Sarkies Advanced Stones',
+      'Deoxys Pokédex',
+    ],
+    tags: ['sarkies', 'dungeons', 'cyborgs', 'endgame', 'timed'],
+  },
   {
     id: 'outland-main',
     name: 'Outland Main (Kanto)',

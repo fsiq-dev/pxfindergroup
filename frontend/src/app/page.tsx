@@ -15,7 +15,7 @@ import { Quest, Room, Player, World, Clan } from '@/lib/types';
 import { api } from '@/lib/api';
 import { Search, LayoutGrid, List } from 'lucide-react';
 
-type Filter = 'all' | 'kanto';
+type Filter = 'all' | 'kanto' | 'special';
 
 export default function HomePage() {
   const router = useRouter();
@@ -172,6 +172,7 @@ export default function HomePage() {
   const categories: { value: Filter; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'kanto', label: 'Kanto' },
+    { value: 'special', label: 'Special' },
   ];
 
   const filteredQuests = quests.filter((q) => {

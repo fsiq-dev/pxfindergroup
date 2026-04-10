@@ -16,7 +16,7 @@ export type World =
 
 export type Clan = 'Volcanic' | 'Raibolt' | 'Seavell' | 'Orebound' | 'Naturia' | 'Gardestrike' | 'Ironhard' | 'Wingeon' | 'Psycraft' | 'Malefic' |'None';
 export type QuestDifficulty = 'easy' | 'medium' | 'hard' | 'extreme';
-export type QuestCategory = 'kanto';
+export type QuestCategory = 'kanto' | 'special';
 export type RoomStatus = 'waiting' | 'full' | 'in-progress' | 'completed';
 
 export interface Player {
@@ -90,7 +90,8 @@ export const DIFFICULTY_COLORS: Record<QuestDifficulty, string> = {
 };
 
 export const CATEGORY_COLORS: Record<QuestCategory, string> = {
-  kanto: 'text-amber-400 bg-amber-400/10',
+  kanto:   'text-amber-400 bg-amber-400/10',
+  special: 'text-pink-400 bg-pink-400/10',
 };
 
 export const WORLD_COLORS: Record<World, string> = {
